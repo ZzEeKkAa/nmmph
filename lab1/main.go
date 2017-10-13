@@ -71,7 +71,7 @@ func Run() {
 	var phi []func(float64) float64
 	var x []float64
 
-	n := 5
+	n := 4
 	for i := 0; i < n; i++ {
 		var ii = i
 		phi = append(phi, func(x float64) float64 {
@@ -97,11 +97,11 @@ func Run() {
 		r = mat64.NewDense(n, 1, nil)
 	)
 
-	for j := 0; j < n; j++ {
-		for i := 0; i < n; i++ {
-			A.Set(j, i, -k(x[i])*der2(phi[j], x[i])+(p(x[i])-der(k, x[i]))*der(phi[j], x[i])+q(x[i])*phi[j](x[i]))
+	for i := 0; i < n; i++ {
+		for j := 0; j < n; j++ {
+			A.Set(i, j, -k(x[i])*der2(phi[j], x[i])+(p(x[i])-der(k, x[i]))*der(phi[j], x[i])+q(x[i])*phi[j](x[i]))
 		}
-		F.Set(j, 0, f(x[j]))
+		F.Set(i, 0, f(x[i]))
 	}
 
 	log.Info(x)
@@ -141,9 +141,15 @@ func Run() {
 
 		return ans
 	}
+	
+	un(0)
+
+	var u = func(x float64) float64 {
+		return a1*math.Pow(x, n1) + a2*math.Pow(x, n2) + a3*math.Pow(x, n3) + a4
+	}
 
 	var fn = func(x float64) float64 {
-		return -k(x)*der2(un, x) + (p(x)-der(k, x))*der(un, x) + q(x)*un(x)
+		return -k(x)*der2(u, x) + (p(x)-der(k, x))*der(u, x) + q(x)*u(x)
 	}
 
 	var t, ffn, ff []float64
@@ -164,13 +170,13 @@ func Run() {
 	//fnPol.Color = color.RGBA{R: 0, G: 255, B: 0, A: 255}
 
 	pl, _ := plot.New()
-	pl.X.Min, pl.X.Max = a-1, b+1
+	pl.X.Min, pl.X.Max = a, b
 
 	plotutil.AddLinePoints(pl,
-		"real", pointsFromFunc(f, 50),
-		"calculated", pointsFromFunc(fn, 50))
+		"real", pointsFromFunc(u, 50),
+		"calculated", pointsFromFunc(un, 50))
 
-	pl.Y.Min, pl.Y.Max = -5000, 5000
+	//pl.Y.Min, pl.Y.Max = -2000, 2000
 
 	//pl.Add(fPol)
 	//pl.Add(fnPol)

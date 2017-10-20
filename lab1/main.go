@@ -8,6 +8,8 @@ import (
 	"gonum.org/v1/plot/plotutil"
 	"gonum.org/v1/plot/vg"
 
+	"strconv"
+
 	"github.com/gonum/matrix/mat64"
 	log "github.com/sirupsen/logrus"
 )
@@ -71,7 +73,7 @@ func Run() {
 	var phi []func(float64) float64
 	var x []float64
 
-	n := 4
+	n := 30
 	for i := 0; i < n; i++ {
 		var ii = i
 		phi = append(phi, func(x float64) float64 {
@@ -90,11 +92,16 @@ func Run() {
 		return (x - b) * (x - b) * (x - B)
 	}
 
+	var u = func(x float64) float64 {
+		return a1*math.Pow(x, n1) + a2*math.Pow(x, n2) + a3*math.Pow(x, n3) + a4
+	}
+
 	var (
-		A = mat64.NewDense(n, n, nil)
-		c = mat64.NewDense(n, 1, nil)
-		F = mat64.NewDense(n, 1, nil)
-		r = mat64.NewDense(n, 1, nil)
+		A  = mat64.NewDense(n, n, nil)
+		c1 = mat64.NewDense(n, 1, nil)
+		c2 = mat64.NewDense(n, 1, nil)
+		F  = mat64.NewDense(n, 1, nil)
+		//r = mat64.NewDense(n, 1, nil)
 	)
 
 	for i := 0; i < n; i++ {
@@ -104,48 +111,57 @@ func Run() {
 		F.Set(i, 0, f(x[i]))
 	}
 
-	log.Info(x)
-	log.Info(A)
-	log.Info(F)
-
-	//log.Info(phi[0](x[0]), phi[0](x[1]))
-	//log.Info(der(phi[0], x[0]), der(phi[0], x[1]))
-	//log.Info(der2(phi[0], x[0]), der2(phi[0], x[1]))
-	//log.Info(phi[1](x[0]), phi[1](x[1]))
-	//log.Info(der(phi[1], x[0]), der(phi[1], x[1]))
-	//log.Info(der2(phi[1], x[0]), der2(phi[1], x[1]))
-
-	if err := c.Solve(A, F); err != nil {
+	if err := c1.Solve(A, F); err != nil {
 		log.Error(err)
 	}
 
-	log.Info(c)
-
-	r.Mul(A, c)
-	r.Sub(r, F)
-	var rr float64
-	for i := 0; i < n; i++ {
-		rr += r.At(i, 0) * r.At(i, 0)
-	}
-
-	rr = math.Sqrt(rr)
-
-	log.Infof("r=%.4f", rr)
-
-	var un = func(x float64) float64 {
+	var un1 = func(x float64) float64 {
 		var ans float64
 
 		for i := 0; i < n; i++ {
-			ans += phi[i](x) * c.At(i, 0)
+			ans += phi[i](x) * c1.At(i, 0)
 		}
 
 		return ans
 	}
-	
-	un(0)
 
-	var u = func(x float64) float64 {
-		return a1*math.Pow(x, n1) + a2*math.Pow(x, n2) + a3*math.Pow(x, n3) + a4
+	N := 10
+	for i := 0; i < n; i++ {
+		for j := 0; j < n; j++ {
+			A.Set(i, j, mul(func(x float64) float64 {
+				return -k(x)*der2(phi[i], x) + (p(x)-der(k, x))*der(phi[i], x) + q(x)*phi[i](x)
+			}, func(x float64) float64 {
+				return -k(x)*der2(phi[j], x) + (p(x)-der(k, x))*der(phi[j], x) + q(x)*phi[j](x)
+			}, a, b, N))
+		}
+		F.Set(i, 0, mul(func(x float64) float64 {
+			return -k(x)*der2(phi[i], x) + (p(x)-der(k, x))*der(phi[i], x) + q(x)*phi[i](x)
+		}, f, a, b, N))
+	}
+
+	if err := c2.Solve(A, F); err != nil {
+		log.Error(err)
+	}
+
+	//r.Mul(A, c)
+	//r.Sub(r, F)
+	//var rr float64
+	//for i := 0; i < n; i++ {
+	//	rr += r.At(i, 0) * r.At(i, 0)
+	//}
+	//
+	//rr = math.Sqrt(rr)
+	//
+	//log.Infof("r=%.4f", rr)
+
+	var un2 = func(x float64) float64 {
+		var ans float64
+
+		for i := 0; i < n; i++ {
+			ans += phi[i](x) * c2.At(i, 0)
+		}
+
+		return ans
 	}
 
 	var fn = func(x float64) float64 {
@@ -174,7 +190,8 @@ func Run() {
 
 	plotutil.AddLinePoints(pl,
 		"real", pointsFromFunc(u, 50),
-		"calculated", pointsFromFunc(un, 50))
+		"kolok", pointsFromFunc(un1, 50),
+		"mnmk", pointsFromFunc(un2, 50))
 
 	//pl.Y.Min, pl.Y.Max = -2000, 2000
 
@@ -188,7 +205,7 @@ func Run() {
 	//
 
 	log.Println("plotting")
-	if err := pl.Save(14*vg.Inch, 14*vg.Inch, "plot.png"); err != nil {
+	if err := pl.Save(5*vg.Inch, 5*vg.Inch, "plot"+strconv.FormatInt(int64(n), 10)+".png"); err != nil {
 		log.Error(err)
 	}
 	log.Println("stopped plotting")
@@ -211,4 +228,23 @@ func der(f func(float64) float64, x float64) float64 {
 func der2(f func(float64) float64, x float64) float64 {
 	eps := 0.000001
 	return (der(f, x+eps) - der(f, x-eps)) / (2 * eps)
+}
+
+func mul(f1, f2 func(float64) float64, a, b float64, N int) float64 {
+	N *= 2
+
+	var I = f1(a)*f2(a) + f1(b)*f2(b)
+
+	for i := 1; i < N; i++ {
+		xi := a + float64(i)/float64(N)*(b-a)
+		if i%2 == 1 {
+			I += 4 * f1(xi) * f2(xi)
+		} else {
+			I += 2 * f1(xi) * f2(xi)
+		}
+	}
+
+	I *= (b - a) / 6 / float64(N)
+
+	return I
 }

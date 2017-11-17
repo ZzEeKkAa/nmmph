@@ -2,13 +2,12 @@ package lab1
 
 import (
 	"math"
+	"strconv"
 
 	"gonum.org/v1/plot"
 	"gonum.org/v1/plot/plotter"
 	"gonum.org/v1/plot/plotutil"
 	"gonum.org/v1/plot/vg"
-
-	"strconv"
 
 	"github.com/gonum/matrix/mat64"
 	log "github.com/sirupsen/logrus"

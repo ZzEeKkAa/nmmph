@@ -197,7 +197,7 @@ func Run() {
 	\hline`)
 	for i, x := range x {
 		if i%(n/10) != 0 {
-			continue
+			//continue
 		}
 		u, y := u(x), c.At(i, 0)
 		fmt.Printf("\t%7.2f & %7.2f & %7.2f & %9.4f & %9.4f\\%% \\\\\n", x, u, y, math.Abs(u-y), math.Abs(u-y)/u*100)

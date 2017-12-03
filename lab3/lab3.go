@@ -96,10 +96,10 @@ func main() {
 			//c[i+1] = -dx[i] - (d[i+1] + b[i+1])
 			//phi[i+1] = -dx[i]*y[i] - tao*(1-sig)/(h*h)*(dx[i+1]*(y[i+1]-y[i])-dx[i]*(y[i]-y[i-1]))
 
-			//d[i+1] = sig * tao / (h * h) * dx[i]
-			//b[i+1] = sig * tao / (h * h) * dx[i+1]
-			//c[i+1] = -dx[i] - (d[i+1] + b[i+1])
-			//phi[i+1] = -dx[i]*y[i] - tao*(1-sig)/(h*h)*(dx[i+1]*(y[i+1]-y[i])-dx[i]*(y[i]-y[i-1]))
+			d[i+1] = sig * tao / (h * h) * dx[i]
+			b[i+1] = sig * tao / (h * h) * dx[i+1]
+			c[i+1] = -dx[i] - (d[i+1] + b[i+1])
+			phi[i+1] = -dx[i]*y[i] - tao*(1-sig)/(h*h)*(dx[i+1]*(y[i+1]-y[i])-dx[i]*(y[i]-y[i-1]))
 		}
 
 		A.Set(N, N, 3+2*h*gamma1)

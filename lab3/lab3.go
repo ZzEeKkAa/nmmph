@@ -27,7 +27,7 @@ func main() {
 
 	// Numeric params
 	var (
-		N, M int     = 10, 10
+		N, M int     = 30, 30
 		sig  float64 = 0.5
 	)
 
@@ -46,6 +46,14 @@ func main() {
 		dx[i] = (x[i+1]*x[i+1] - x[i-1]*x[i-1]) / (4 * h)
 	}
 
+	var dp = make([]float64, N+1)
+	//dp[0] = (x[1]*x[1] - x[0]*x[0]) / (2 * h)
+	dp[N] = (x[N]*x[N] - x[N-1]*x[N-1]) / (2 * h)
+
+	for i := 1; i < N; i++ {
+		dp[i] = (x[i]*x[i] - x[i-1]*x[i-1]) / (2 * h)
+	}
+
 	var y = make([]float64, N+1)
 
 	for i := 0; i <= N; i++ {
@@ -61,13 +69,10 @@ func main() {
 		d := make([]float64, N+2)
 		phi := make([]float64, N+2)
 
+		/* Simple */
 		A := mat64.NewDense(N+1, N+1, nil)
 		yy := mat64.NewDense(N+1, 1, nil)
 		xx := mat64.NewDense(N+1, 1, nil)
-
-		b[1] = sig * tao / (h * h) * dx[1]
-		c[1] = -dx[0]*0.5 - b[1]
-		phi[1] = -0.5*dx[0]*y[0] - (1-sig)*tao/(h*h)*dx[1]*(y[1]-y[0])
 
 		A.Set(0, 0, -3)
 		A.Set(0, 1, 4)
@@ -85,21 +90,6 @@ func main() {
 			A.Set(i, i, c[i])
 			A.Set(i, i+1, b[i])
 			yy.Set(i, 0, phi[i])
-
-			//d[i] = -sig * tao / (h * h) * x[i-1]
-			//b[i] = -sig * tao / (h * h) * x[i+1-1]
-			//c[i] = x[i-1] - b[i] - d[i]
-			//phi[i] = x[i-1]*y[i-1] + tao*(1-sig)/(h*h)*(x[i+1-1]*(y[i+1-1]-y[i-1])-x[i-1]*(y[i-1]-y[i-1-1]))
-
-			//d[i+1] = sig * tao / (h * h) * dx[i]
-			//b[i+1] = sig * tao / (h * h) * dx[i+1]
-			//c[i+1] = -dx[i] - (d[i+1] + b[i+1])
-			//phi[i+1] = -dx[i]*y[i] - tao*(1-sig)/(h*h)*(dx[i+1]*(y[i+1]-y[i])-dx[i]*(y[i]-y[i-1]))
-
-			d[i+1] = sig * tao / (h * h) * dx[i]
-			b[i+1] = sig * tao / (h * h) * dx[i+1]
-			c[i+1] = -dx[i] - (d[i+1] + b[i+1])
-			phi[i+1] = -dx[i]*y[i] - tao*(1-sig)/(h*h)*(dx[i+1]*(y[i+1]-y[i])-dx[i]*(y[i]-y[i-1]))
 		}
 
 		A.Set(N, N, 3+2*h*gamma1)
@@ -107,66 +97,60 @@ func main() {
 		A.Set(N, N-2, 1)
 		yy.Set(N, 0, 0)
 
-		d[N+1] = sig * tao / (h * h) * dx[N]
-		c[N+1] = -sig*tao/h*gamma1*x[N] - 0.5*dx[N] - d[N+1]
-		phi[N+1] = (1-sig)*tao/h*gamma1*x[N]*y[N] - 0.5*dx[N]*y[N] + (1-sig)*tao/(h*h)*dx[N]*(y[N]-y[N-1])
-
-		//for i := 1; i <= N+1; i++ {
-		//	fmt.Printf("%7.2f %7.2f %7.2f | %7.2f\n", d[i], c[i], b[i], phi[i])
-		//}
-
 		xx.Solve(A, yy)
 
 		for i := range y {
 			y[i] = xx.At(i, 0)
 		}
 
-		printArr(y)
-		fmt.Println()
-		continue
+		/* END Simple */
 
-		A.Set(0, 0, c[1])
-		A.Set(0, 1, b[1])
-		for i := 2; i < N+1; i++ {
-			A.Set(i-1, i-2, d[i])
-			A.Set(i-1, i-1, c[i])
-			A.Set(i-1, i, b[i])
-		}
-		A.Set(N, N-1, d[N+1])
-		A.Set(N, N, c[N+1])
-
-		for i := 0; i < N+1; i++ {
-			yy.Set(i, 0, phi[i+1])
-		}
-
-		xx.Solve(A, yy)
-
-		m := make([]float64, N+2)
-		w := make([]float64, N+2)
-		m[2] = -b[1] / c[1]
-		w[2] = phi[1] / c[1]
-
-		for i := 2; i <= N; i++ {
-			m[i+1] = -b[i] / (c[i] + d[i]*m[i])
-			w[i+1] = (phi[i] - d[i]*w[i]) / (c[i] + d[i]*w[i])
-		}
-
-		v := make([]float64, N+2)
-
-		v[N+1] = (phi[N+1] - d[N+1]*w[N+1]) / (c[N+1] + d[N+1]*m[N+1])
-
-		for i := N + 1; i > 1; i-- {
-			v[i-1] = m[i]*v[i] + w[i]
-		}
-
+		/* Hard */
+		//b[1] = sig * tao / (h * h) * dp[1]
+		//c[1] = -dx[0]*0.5 - b[1]
+		//phi[1] = -0.5*dx[0]*y[0] - (1-sig)*tao/(h*h)*dp[1]*(y[1]-y[0])
+		//
+		//for i := 1; i < N; i++ {
+		//	// d[i] * v[i-1] + c[i] * v[i] + b[i] * v[i+1] = phi[i]
+		//
+		//	//d[i] = -sig * tao / (h * h) * x[i-1]
+		//	//b[i] = -sig * tao / (h * h) * x[i+1-1]
+		//	//c[i] = x[i-1] - b[i] - d[i]
+		//	//phi[i] = x[i-1]*y[i-1] + tao*(1-sig)/(h*h)*(x[i+1-1]*(y[i+1-1]-y[i-1])-x[i-1]*(y[i-1]-y[i-1-1]))
+		//
+		//	d[i+1] = sig * tao / (h * h) * dp[i]
+		//	b[i+1] = sig * tao / (h * h) * dp[i+1]
+		//	c[i+1] = -dx[i] - (d[i+1] + b[i+1])
+		//	phi[i+1] = -dx[i]*y[i] - tao*(1-sig)/(h*h)*(dp[i+1]*(y[i+1]-y[i])-dp[i]*(y[i]-y[i-1]))
+		//}
+		//
+		//d[N+1] = sig * tao / (h * h) * dp[N]
+		//c[N+1] = -sig*tao/h*gamma1*x[N] - 0.5*dx[N] - d[N+1]
+		//phi[N+1] = (1-sig)*tao/h*gamma1*x[N]*y[N] - 0.5*dx[N]*y[N] + (1-sig)*tao/(h*h)*dp[N]*(y[N]-y[N-1])
+		//
+		//m := make([]float64, N+2)
+		//w := make([]float64, N+2)
+		//m[2] = -b[1] / c[1]
+		//w[2] = phi[1] / c[1]
+		//
+		//for i := 2; i <= N; i++ {
+		//	m[i+1] = -b[i] / (c[i] + d[i]*m[i])
+		//	w[i+1] = (phi[i] - d[i]*w[i]) / (c[i] + d[i]*w[i])
+		//}
+		//
+		//v := make([]float64, N+2)
+		//
+		//v[N+1] = (phi[N+1] - d[N+1]*w[N+1]) / (c[N+1] + d[N+1]*m[N+1])
+		//
+		//for i := N + 1; i > 1; i-- {
+		//	v[i-1] = m[i]*v[i] + w[i]
+		//}
+		//
 		//for i := 0; i <= N; i++ {
-		//	fmt.Printf("%7.4f-%7.4f=%7.4f\n", xx.At(i, 0), v[i+1], xx.At(i, 0)-v[i+1])
+		//	y[i] = v[i+1]
 		//}
 
-		for i := 0; i <= N; i++ {
-			//y[i] = xx.At(i, 0)
-			y[i] = v[i+1]
-		}
+		/* END Hard */
 
 		printArr(y)
 		fmt.Println()

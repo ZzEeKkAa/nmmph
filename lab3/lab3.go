@@ -16,7 +16,7 @@ func main() {
 		ro     float64 = 1600.
 		gamma  float64 = 7.
 		R      float64 = 0.5
-		T      float64 = 60 * 60
+		T      float64 = 60 * 60 * 24
 	)
 
 	// Physics trans
@@ -27,7 +27,7 @@ func main() {
 
 	// Numeric params
 	var (
-		N, M int     = 30, 30
+		N, M int     = 10, 20
 		sig  float64 = 0.5
 	)
 
@@ -81,10 +81,10 @@ func main() {
 
 		for i := 1; i < N; i++ {
 			// d[i] * v[i-1] + c[i] * v[i] + b[i] * v[i+1] = phi[i]
-			d[i] = -sig * tao / (h * h) * x[i]
-			b[i] = -sig * tao / (h * h) * x[i+1]
+			d[i] = -sig * tao / (h * h) * (x[i] - h/2)
+			b[i] = -sig * tao / (h * h) * (x[i+1] - h/2)
 			c[i] = x[i] - b[i] - d[i]
-			phi[i] = x[i]*y[i] + tao*(1-sig)/(h*h)*(x[i+1]*(y[i+1]-y[i])-x[i]*(y[i]-y[i-1]))
+			phi[i] = x[i]*y[i] + tao*(1-sig)/(h*h)*((x[i+1]-h/2)*(y[i+1]-y[i])-(x[i]-h/2)*(y[i]-y[i-1]))
 
 			A.Set(i, i-1, d[i])
 			A.Set(i, i, c[i])
@@ -159,7 +159,12 @@ func main() {
 
 func printArr(arr []float64) {
 	var u0 float64 = -20. + 273.15
-	for _, x := range arr {
+	for i, x := range arr {
 		fmt.Printf("%7.2f", (x+1)*u0-273.15)
+		if i != len(arr)-1 {
+			fmt.Print("&")
+		} else {
+			fmt.Print(" \\\\")
+		}
 	}
 }

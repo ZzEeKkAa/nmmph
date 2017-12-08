@@ -9,14 +9,14 @@ import (
 func main() {
 	// Physics params
 	var (
-		u1     float64 = 20. + 273.15
-		u0     float64 = -20. + 273.15
+		u1     float64 = 0. + 273.15 - 100
+		u0     float64 = -20. + 273.15 - 100
 		lambda float64 = 0.77
 		cc     float64 = 830.
 		ro     float64 = 1600.
 		gamma  float64 = 7.
 		R      float64 = 0.5
-		T      float64 = 60 * 60 * 24
+		T      float64 = 60 * 60 * 5
 	)
 
 	// Physics trans
@@ -27,7 +27,7 @@ func main() {
 
 	// Numeric params
 	var (
-		N, M int     = 10, 20
+		N, M int     = 20, 20
 		sig  float64 = 0.5
 	)
 
@@ -158,13 +158,13 @@ func main() {
 }
 
 func printArr(arr []float64) {
-	var u0 float64 = -20. + 273.15
-	for i, x := range arr {
-		fmt.Printf("%7.2f", (x+1)*u0-273.15)
-		if i != len(arr)-1 {
-			fmt.Print("&")
-		} else {
-			fmt.Print(" \\\\")
-		}
+	var u0 float64 = -20. + 273.15 - 100
+	for _, x := range arr {
+		fmt.Printf("%7.2f", ((x+1)*u0 - 273.15 + 100))
+		//if i != len(arr)-1 {
+		//	fmt.Print("&")
+		//} else {
+		//	fmt.Print(" \\\\")
+		//}
 	}
 }

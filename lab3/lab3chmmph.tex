@@ -93,20 +93,75 @@
 	\section{Метод безпосередньої заміни похідних частковими}
 	\subsection{Теорія}
 	Робимо заміну для обезрозміреного рівняння
-	\begin{figure}[h!]
-		\includegraphics[scale=0.25]{th_pd2.jpg}
-		\centering
-		\caption{Теорія}
-	\end{figure}
+	\begin{equation}
+		\frac{\partial v}{\partial x_1} \Bigr|_{\substack{x_1=0}} = 0 
+	\end{equation}
+	\begin{equation}
+		v'_0 = \frac{4v_1-v_2-3v_0}{2h} + O(h^2)
+	\end{equation}
+	\begin{equation}
+		-3v_0+4v_1-v_2=0 
+	\end{equation}
 	
-	\begin{figure}[h!]
-		\includegraphics[scale=0.25]{th_pd1.jpg}
-		\centering
-		\caption{Теорія}
-	\end{figure}
+	\begin{equation}
+		\frac{\partial v}{\partial x_1} + \gamma_1 \cdot v \Bigr|_{\substack{x_1=1}}= 0 
+	\end{equation}
+	\begin{equation}
+		v'_N = \frac{v_N+3v_{N-1}-4v_{N-2}}{2h} + O(h^2)
+	\end{equation}
+	\begin{equation}
+		v_{N-2}-4v_{N-1}+3v_N=-2\gamma_1\cdot h\cdot v 
+	\end{equation}
 	
 	\newpage
-	\textbf{}
+	\begin{equation}
+		\frac{u^{j+1}_i-u^j_i}{\tau} = (\frac{1}{x}(x(\sigma \cdot u^{j+1}+(1-\sigma) \cdot u^j)_{\bar{x}})_x)_i
+	\end{equation}
+	\begin{equation}
+		x_i(u^{j+1}_i-u^j_i) = \frac{\tau}{h}(x_{i+0.5}(\sigma \cdot u^{j+1}+(1-\sigma) \cdot u^j)_{\bar{x},i+1} - x_{i-0.5}(\sigma \cdot u^{j+1}+(1-\sigma) \cdot u^j)_{\bar{x},i})
+	\end{equation}
+	
+	\begin{equation}
+		x_i(u^{j+1}_i-u^j_i) = \frac{\tau}{h^2}(
+		  x_{i+0.5}(\sigma \cdot (u^{j+1}_{i+1}-u^{j+1}_{i})  +(1-\sigma) \cdot (u^j_{i+1}-u^{j}_{i}))
+	\end{equation}
+	\begin{equation}
+		- x_{i-0.5}(\sigma \cdot (u^{j+1}_i    -u^{j+1}_{i-1})+(1-\sigma) \cdot (u^j_i-u^j_{i-1})
+		)
+	\end{equation}
+	
+	\begin{equation}
+		x_i \cdot u^{j+1}_i - \frac{\tau}{h^2}(
+		  x_{i+0.5}\cdot\sigma \cdot (u^{j+1}_{i+1}-u^{j+1}_{i})
+		- x_{i-0.5}\cdot\sigma \cdot (u^{j+1}_i    -u^{j+1}_{i-1}))=
+	\end{equation}
+	\begin{equation}
+		x_i \cdot u^j_i - \frac{\tau}{h^2}(
+		  x_{i+0.5}\cdot(1- \sigma) \cdot (u^{j}_{i+1}-u^{j}_{i})
+		- x_{i-0.5}\cdot(1- \sigma) \cdot (u^{j}_i    -u^{j}_{i-1}))
+	\end{equation}
+	
+	\begin{equation}
+		x_i \cdot u^{j+1}_i - \frac{\tau}{h^2}(
+		  x_{i+0.5}\cdot\sigma \cdot (u^{j+1}_{i+1}-u^{j+1}_{i})
+		- x_{i-0.5}\cdot\sigma \cdot (u^{j+1}_i    -u^{j+1}_{i-1}))=
+	\end{equation}
+	\begin{equation}
+		x_i \cdot u^j_i - \frac{\tau}{h^2}(
+		  x_{i+0.5}\cdot(1- \sigma) \cdot (u^{j}_{i+1}-u^{j}_{i})
+		- x_{i-0.5}\cdot(1- \sigma) \cdot (u^{j}_i    -u^{j}_{i-1}))
+	\end{equation}
+	
+	\begin{equation}
+		- \frac{\tau}{h^2}\cdot x_{i-0.5}\cdot\sigma \cdot u_{i-1}
+		+(x_i+\frac{\tau}{h^2}\cdot \sigma \cdot (x_{i-0.5}+x_{i+0.5}))\cdot u_i
+		- \frac{\tau}{h^2}\cdot x_{i+0.5}\cdot\sigma \cdot u_{i+1}=
+	\end{equation}
+	\begin{equation}
+		x_i \cdot u^j_i - \frac{\tau}{h^2}(
+		  x_{i+0.5}\cdot(1- \sigma) \cdot (u^{j}_{i+1}-u^{j}_{i})
+		- x_{i-0.5}\cdot(1- \sigma) \cdot (u^{j}_i    -u^{j}_{i-1}))
+	\end{equation}
 			
 	\newpage
 	\subsection{Алгоритм}
